@@ -58,20 +58,17 @@ func access_endpoint(endpoint Endpoint, docker_socket string, api_version string
 		fmt.Println(err)
 	} else {
 		resp_body, _ := ioutil.ReadAll(response.Body)
-		if strings.Contains(endpoint.Path, "kill") {
-			fmt.Println(string(resp_body))
-		}
 		return string(resp_body)
 	}
 	return ""
 }
 
-func check_response(response_text string, error_msg string, endpoint Endpoint, print_all bool) {
+func check_response(response_text string, error_msg string, endpoint Endpoint) {
 	colorRed := "\033[31m"
 	colorGreen := "\033[32m"
 	noColor := "\033[0m"
 
-	if strings.Contains(response_text, error_msg) && print_all {
+	if strings.Contains(response_text, error_msg) {
 		fmt.Println(endpoint.Path + " (" + endpoint.Method + ")" + string(colorRed) + " is forbidden" + string(noColor) + " with response: " + response_text)
 	} else {
 		fmt.Println(endpoint.Path + " (" + endpoint.Method + ")" + string(colorGreen) + " is allowed" + string(noColor))
@@ -81,11 +78,10 @@ func check_response(response_text string, error_msg string, endpoint Endpoint, p
 func main() {
 	// Parse arguments
 	help := flag.Bool("h", false, "Print help")
-	print_all := flag.Bool("a", false, "Print allowed and forbidden")
 	error_msg := flag.String("e", "failed with error: AuthZPlugin", "Indicate the error message fingerprint.")
 	api_version := flag.String("v", "v1.41", "Version of the docker API")
 	docker_container_id := flag.String("c", "6beb73cc1123", "Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option).")
-	docker_image_name := flag.String("i", "ubuntu", "Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option)")
+	docker_image_name := flag.String("i", "invented_img", "Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option)")
 	flag.Parse()
 
 	if *help || len(flag.Args()) != 1 {
@@ -106,6 +102,6 @@ func main() {
 	for i := 0; i < len(endpoints.Endpoints); i++ {
 		endpoints.Endpoints[i].Path = strings.Replace(strings.Replace(endpoints.Endpoints[i].Path, "{id}", *docker_container_id, -1), "{name}", *docker_image_name, -1)
 		var response_text string = access_endpoint(endpoints.Endpoints[i], flag.Args()[0], *api_version)
-		check_response(response_text, *error_msg, endpoints.Endpoints[i], *print_all)
+		check_response(response_text, *error_msg, endpoints.Endpoints[i])
 	}
 }

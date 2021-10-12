@@ -4,23 +4,22 @@ The goal of this project if to find out which **docker endpoints are being filte
 
 This code will **brute force all the possible docker api endpoints** and show which ones are **allowed**.
 
-**NOTE** that you will be calling the docker API so dangerous actions might be performed when running this script!
+**NOTE** that you will be calling the docker API so dangerous actions might be performed when running this script (*the use of the default and invented values of container ID and image name should avoid this*)
 
 ```bash
 Usage: ./builds/docker_auth_profiler_amd64 [-c 6beb73cc1eef -i ubuntu [More Options]] /run/docker.sock
-  -a	Print allowed and forbidden
   -c string
     	Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option). (default "6beb73cc1123")
   -e string
     	Indicate the error message fingerprint. (default "failed with error: AuthZPlugin")
   -h	Print help
   -i string
-    	Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option) (default "ubuntu")
+    	Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option) (default "invented_img")
   -v string
     	Version of the docker API (default "v1.41")
 ```
 
-## How I detect a docker authorization plugin
+## How to detect a docker authorization plugin
 If you perform a regular docker action and find an error message such as this one: `docker: Error response from daemon: authorization denied by plugin authobot:latest: use of Privileged containers is not allowed.`. Then, there is a docker authorization plugin.
 
 You could also **try to list the plugins** with:
@@ -38,6 +37,6 @@ If you want to update the endpoints, start by **executing that script** then gra
 
 
 ## More Info
-For more information about **what is** a docker authorization plugin and possible **bypasses** check **https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout/authz-and-authn-docker-access-authorization-plugin**
+- For more information about **what is** a docker authorization plugin and possible **bypasses** check **https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout/authz-and-authn-docker-access-authorization-plugin**
 
-For an example of a **simple and vulnerable docker auth plugin check https://github.com/carlospolop-forks/authobot**
+- For an example of a **simple and vulnerable docker auth plugin check https://github.com/carlospolop-forks/authobot**
