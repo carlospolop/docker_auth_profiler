@@ -36,6 +36,9 @@ The script `download_endpoints.py` will download and parse all the endpoints fro
 If you want to update the endpoints, start by **executing that script** then grab the generated json and update the `docker_auth_profiler.go` file.
 
 
+## TODO
+- Brute-Force also interesting **HostConfig** values
+
 ## More Info
 - For more information about **what is** a docker authorization plugin and possible **bypasses** check **https://book.hacktricks.xyz/linux-unix/privilege-escalation/docker-breakout/authz-and-authn-docker-access-authorization-plugin**
 
