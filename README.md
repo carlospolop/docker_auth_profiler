@@ -4,12 +4,18 @@ The goal of this project if to find out which **docker endpoints are being filte
 
 This code will **brute force all the possible docker api endpoints** and show which ones are **allowed**.
 
+**NOTE** that you will be calling the docker API so dangerous actions might be performed when running this script!
+
 ```bash
-Usage: ./docker_auth_profiler /run/docker.sock
+Usage: ./builds/docker_auth_profiler_amd64 [-c 6beb73cc1eef -i ubuntu [More Options]] /run/docker.sock
   -a	Print allowed and forbidden
+  -c string
+    	Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option). (default "6beb73cc1123")
   -e string
-    	Indicate the error message fingerprint (default "authorization denied by plugin")
+    	Indicate the error message fingerprint. (default "failed with error: AuthZPlugin")
   -h	Print help
+  -i string
+    	Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option) (default "ubuntu")
   -v string
     	Version of the docker API (default "v1.41")
 ```

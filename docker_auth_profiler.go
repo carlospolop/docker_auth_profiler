@@ -84,8 +84,8 @@ func main() {
 	print_all := flag.Bool("a", false, "Print allowed and forbidden")
 	error_msg := flag.String("e", "failed with error: AuthZPlugin", "Indicate the error message fingerprint.")
 	api_version := flag.String("v", "v1.41", "Version of the docker API")
-	docker_container_id := flag.String("c", "6beb73cc1123", "Existent container ID. If not provided, false possitive regarding container actions will appear (default value is usually useless, so use this option).")
-	docker_image_name := flag.String("i", "ubuntu", "Existent image name. If not provided, false possitive regarding image actions will appear (default value is usually useless, so use this option)")
+	docker_container_id := flag.String("c", "6beb73cc1123", "Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option).")
+	docker_image_name := flag.String("i", "ubuntu", "Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option)")
 	flag.Parse()
 
 	if *help || len(flag.Args()) != 1 {
