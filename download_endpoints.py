@@ -4,11 +4,6 @@ import json
 import os
 
 
-def clean_endpoint(endpoint):
-    id_example = "71a12335e123"
-    img_name_example = "image_name"
-    return endpoint.replace("{id}", id_example).replace("{name}", img_name_example)
-
 def main():
     url_endpoints = "https://docs.docker.com/engine/api/v1.40.yaml"
     r = requests.get(url_endpoints)
@@ -18,14 +13,14 @@ def main():
     for endpoint,val in y_loaded["paths"].items():
         if "get" in val:
             endpoints_json["endpoints"].append({
-                "path": clean_endpoint(endpoint),
+                "path": endpoint,
                 "method": "get",
                 "summary": val["get"]["summary"]
             })
         
         if "post" in val:
             endpoints_json["endpoints"].append({
-                "path": clean_endpoint(endpoint),
+                "path": endpoint,
                 "method": "post",
                 "summary": val["post"]["summary"]
             })

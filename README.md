@@ -28,7 +28,7 @@ ca99dd5a4e26   authobot:latest   Authorization plugin for Docker   true
 ## Update docker endpoints
 The script `download_endpoints.py` will download and parse all the endpoints from https://docs.docker.com/engine/api/v1.40.yaml.
 
-If you want to update the endpoints, start by **executing that script**.
+If you want to update the endpoints, start by **executing that script** then grab the generated json and update the `docker_auth_profiler.go` file.
 
 
 ## More Info
