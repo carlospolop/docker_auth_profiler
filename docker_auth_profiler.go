@@ -148,6 +148,14 @@ func main() {
 			Data: []byte(`{"HostConfig": {"Binds": ["/tmp:/tmp"]}}`),
 		},
 		{
+			Test: " - Mounts in root",
+			Data: []byte(`{"Image": "` + docker_image_name + `", "Mounts": [{"Name": "fac36212380535", "Source": "/tmp", "Destination": "/tmp", "Driver": "local", "Mode": "rw,Z", "RW": true, "Propagation": "", "Type": "bind", "Target": "/tmp"}]}`),
+		},
+		{
+			Test: " - HostConfig.Mounts",
+			Data: []byte(`{"Image": "` + docker_image_name + `", "HostConfig":{"Mounts": [{"Name": "fac36212380535", "Source": "/tmp", "Destination": "/tmp", "Driver": "local", "Mode": "rw,Z", "RW": true, "Propagation": "", "Type": "bind", "Target": "/tmp"}]}}`),
+		},
+		{
 			Test: " - HostConfig.Privileged",
 			Data: []byte(`{"HostConfig": {"Privileged": true}}`),
 		},
