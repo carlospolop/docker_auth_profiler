@@ -159,6 +159,10 @@ func main() {
 			Test: " - HostConfig.SecurityOpt (disable apparmor)",
 			Data: []byte(`{"HostConfig": {"SecurityOpt": ["apparmor:unconfined"]}}`),
 		},
+		{
+			Test: " - HostConfig.SecurityOpt (disable seccomp)",
+			Data: []byte(`{"HostConfig": {"SecurityOpt": ["seccomp:unconfined"]}}`),
+		},
 	}
 	var endp_create Endpoint
 	endp_create.Path = "/containers/create"
