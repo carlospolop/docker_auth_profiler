@@ -144,7 +144,7 @@ func main() {
 			Data: []byte(`{"Binds":{"/tmp":"/tmp"}}`),
 		},
 		{
-			Test: " - HostConfigs.Binds",
+			Test: " - HostConfig.Binds",
 			Data: []byte(`{"HostConfig": {"Binds": ["/tmp:/tmp"]}}`),
 		},
 		{
