@@ -1,20 +1,16 @@
 # Docker Auth Profiler
 
-The goal of this project if to find out which **docker endpoints are being filtered by an authorization plugin**.
+The goal of this project if to find out which **docker endpoints and sensitive HostConfig values are being filtered by an authorization plugin**.
 
-This code will **brute force all the possible docker api endpoints** and show which ones are **allowed**.
+This code will **brute force all the possible docker api endpoints and sensitive HostConfig values** and show which ones are **allowed**.
 
-**NOTE** that you will be calling the docker API so dangerous actions might be performed when running this script (*the use of the default and invented values of container ID and image name should avoid this*)
+**NOTE** that you will be calling the docker API so dangerous actions might be performed when running this script (*this shoudn't happen because invented image nae and container IDs are used, but you should be aware of this*).
 
 ```bash
-Usage: ./builds/docker_auth_profiler_amd64 [-c 6beb73cc1eef -i ubuntu [More Options]] /run/docker.sock
-  -c string
-    	Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option). (default "6beb73cc1123")
+Usage: ./builds//docker_auth_profiler_amd64 [-c 6beb73cc1eef -i ubuntu [More Options]] /run/docker.sock
   -e string
-    	Indicate the error message fingerprint. (default "failed with error: AuthZPlugin")
+    	Indicate another error message fingerprint. Now using: authorization denied, AuthZPlugin.AuthZReq, AuthNPlugin.AuthNReq
   -h	Print help
-  -i string
-    	Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option) (default "invented_img")
   -v string
     	Version of the docker API (default "v1.41")
 ```

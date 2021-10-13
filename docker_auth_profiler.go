@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -36,7 +37,7 @@ func (q *Endpoints) FromJSON(file string) error {
 	return json.Unmarshal(J, data)
 }
 
-func access_endpoint(endpoint Endpoint, docker_socket string, api_version string) string {
+func AccessEndpoint(endpoint Endpoint, docker_socket string, api_version string, post_data []byte) string {
 	var err error
 	httpc := http.Client{
 		Timeout: 5 * time.Second,
@@ -51,43 +52,69 @@ func access_endpoint(endpoint Endpoint, docker_socket string, api_version string
 	if endpoint.Method == "get" {
 		response, err = httpc.Get(docker_url)
 	} else {
-		response, err = httpc.Post(docker_url, "application/json", strings.NewReader("{}"))
+		response, err = httpc.Post(docker_url, "application/json", bytes.NewBuffer(post_data))
 	}
 
 	if err != nil {
 		fmt.Println(err)
+		response.Body.Close()
 	} else {
 		resp_body, _ := ioutil.ReadAll(response.Body)
+		response.Body.Close()
 		return string(resp_body)
 	}
 	return ""
 }
 
-func check_response(response_text string, error_msg string, endpoint Endpoint) {
+func CheckResponse(response_text string, error_msgs []string, endpoint Endpoint, test_sum string) {
 	colorRed := "\033[31m"
 	colorGreen := "\033[32m"
 	noColor := "\033[0m"
 
-	if strings.Contains(response_text, error_msg) {
-		fmt.Println(endpoint.Path + " (" + endpoint.Method + ")" + string(colorRed) + " is forbidden" + string(noColor) + " with response: " + response_text)
+	if ContainsAny(response_text, error_msgs) && !strings.Contains(response_text, `{\"Allow\":true}`) {
+		fmt.Println(endpoint.Path + " (" + endpoint.Method + ")" + test_sum + string(colorRed) + " is forbidden" + string(noColor) + " with response: " + response_text)
 	} else {
-		fmt.Println(endpoint.Path + " (" + endpoint.Method + ")" + string(colorGreen) + " is allowed" + string(noColor))
+		fmt.Println(endpoint.Path + " (" + endpoint.Method + ")" + test_sum + string(colorGreen) + " is allowed" + string(noColor))
 	}
 }
 
+func ContainsAny(text string, list_to_check []string) bool {
+	for _, check := range list_to_check {
+		if strings.Contains(text, check) {
+			return true
+		}
+	}
+	return false
+}
+
 func main() {
+	var error_msgs []string = []string{
+		"authorization denied",
+		"AuthZPlugin.AuthZReq",
+		"AuthNPlugin.AuthNReq",
+	}
+
 	// Parse arguments
 	help := flag.Bool("h", false, "Print help")
-	error_msg := flag.String("e", "failed with error: AuthZPlugin", "Indicate the error message fingerprint.")
+	error_msg := flag.String("e", "", "Indicate another error message fingerprint. Now using: "+strings.Join(error_msgs[:], ", "))
 	api_version := flag.String("v", "v1.41", "Version of the docker API")
-	docker_container_id := flag.String("c", "6beb73cc1123", "Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option).")
-	docker_image_name := flag.String("i", "invented_img", "Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option)")
+
+	// People shouldn't need to put a valid container id or image name and it could be dangerous
+	//docker_container_id := flag.String("c", "6beb73cc1123", "Existent container ID. If not provided, false possitive regarding container actions may appear (default value is usually useless, so use this option).")
+	//docker_image_name := flag.String("i", "invented_img", "Existent image name. If not provided, false possitive regarding image actions may appear (default value is usually useless, so use this option)")
+	docker_container_id := "6beb73cc1123"
+	docker_image_name := "invented_img32"
+
 	flag.Parse()
 
 	if *help || len(flag.Args()) != 1 {
 		fmt.Fprintln(os.Stderr, "Usage:", os.Args[0], "[-c 6beb73cc1eef -i ubuntu [More Options]] /run/docker.sock")
 		flag.PrintDefaults()
 		os.Exit(0)
+	}
+
+	if len(*error_msg) > 0 {
+		error_msgs = append(error_msgs, *error_msg)
 	}
 
 	//Load JSON
@@ -100,8 +127,46 @@ func main() {
 
 	// Check each endpoint
 	for i := 0; i < len(endpoints.Endpoints); i++ {
-		endpoints.Endpoints[i].Path = strings.Replace(strings.Replace(endpoints.Endpoints[i].Path, "{id}", *docker_container_id, -1), "{name}", *docker_image_name, -1)
-		var response_text string = access_endpoint(endpoints.Endpoints[i], flag.Args()[0], *api_version)
-		check_response(response_text, *error_msg, endpoints.Endpoints[i])
+		endpoints.Endpoints[i].Path = strings.Replace(strings.Replace(endpoints.Endpoints[i].Path, "{id}", docker_container_id, -1), "{name}", docker_image_name, -1)
+		var response_text string = AccessEndpoint(endpoints.Endpoints[i], flag.Args()[0], *api_version, []byte("{}"))
+		CheckResponse(response_text, error_msgs, endpoints.Endpoints[i], "")
+	}
+
+	// Check HostConfig values
+	fmt.Println("\nChecking HostConfig values")
+	type Post_data struct {
+		Test string
+		Data []byte
+	}
+	datas := []Post_data{
+		{
+			Test: " - Binds in root",
+			Data: []byte(`{"Binds":{"/tmp":"/tmp"}}`),
+		},
+		{
+			Test: " - HostConfigs.Binds",
+			Data: []byte(`{"HostConfig": {"Binds": ["/tmp:/tmp"]}}`),
+		},
+		{
+			Test: " - HostConfig.Privileged",
+			Data: []byte(`{"HostConfig": {"Privileged": true}}`),
+		},
+		{
+			Test: " - HostConfig.CapAdd",
+			Data: []byte(`{"HostConfig": {"CapAdd": ["SYS_ADMIN"]}}`),
+		},
+		{
+			Test: " - HostConfig.SecurityOpt (disable apparmor)",
+			Data: []byte(`{"HostConfig": {"SecurityOpt": ["apparmor:unconfined"]}}`),
+		},
+	}
+	var endp_create Endpoint
+	endp_create.Path = "/containers/create"
+	endp_create.Method = "post"
+	endp_create.Summary = "Create a container"
+
+	for i := 0; i < len(datas); i++ {
+		var response_text string = AccessEndpoint(endp_create, flag.Args()[0], *api_version, datas[i].Data)
+		CheckResponse(response_text, error_msgs, endp_create, datas[i].Test)
 	}
 }
