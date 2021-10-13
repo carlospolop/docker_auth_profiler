@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+// Example curl request to check
+// curl --unix-socket /var/run/docker.sock -H "Content-Type: application/json" -d '{"Image": "ubuntu-sleep", "Mounts": [{"Name": "fac36212380535", "Source": "/", "Destination": "/host", "Driver": "local", "Mode": "rw,Z", "RW": true, "Propagation": "", "Type": "bind", "Target": "/host"}]}' http:/v1.40/containers/create
+
 type Endpoints struct {
 	Endpoints []Endpoint `json:"endpoints"`
 }
@@ -22,6 +25,11 @@ type Endpoint struct {
 	Path    string `json:"path"`
 	Method  string `json:"method"`
 	Summary string `json:"summary"`
+}
+
+type Post_data struct {
+	Test string
+	Data []byte
 }
 
 func (q *Endpoints) FromJSON(file string) error {
@@ -134,10 +142,6 @@ func main() {
 
 	// Check HostConfig values
 	fmt.Println("\nChecking HostConfig values")
-	type Post_data struct {
-		Test string
-		Data []byte
-	}
 	datas := []Post_data{
 		{
 			Test: " - Binds in root",
